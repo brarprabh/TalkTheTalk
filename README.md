@@ -1,19 +1,19 @@
-# TalkTheTalk 🎙️ — AI Technical Interview & Career Coach
+# TalkTheTalk  — AI Technical Interview & Career Coach
 
 An end-to-end, AI-powered interview preparation and career coaching platform. **TalkTheTalk** analyzes a candidate's resume PDF, personal pitch, and target job description to formulate custom interview strategies, identify skill gaps, evaluate practice answers via speech or text in real time, and compile downloadable ATS-friendly resumes.
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
-### 1. 🤖 Deterministic AI Interview Plan Generation
+### 1.  Deterministic AI Interview Plan Generation
 - **Schema-Enforced LLM Responses**: Utilizes **Google Gemini 3 Flash** constrained with **Zod Schemas** via `zod-to-json-schema`. Ensures 100% structured JSON responses without hallucinations or broken formats.
 - **Role Match Score**: Evaluates candidate experience against job requirements and scores relevance from 0 to 100%.
 - **Skill Gap Analysis**: Identifies missing or weak technical competencies categorized by severity (`low`, `medium`, `high`).
 - **Targeted Question Bank**: Generates role-specific **Technical** and **Behavioral** questions, each complete with the interviewer's intention and model answer rubrics.
 - **Day-by-Day Preparation Roadmap**: Formulates a structured study timeline broken down into daily focuses and actionable tasks.
 
-### 2. 🎯 Interactive Mock Interviewer ("Practice & Feedback Mode")
+### 2.  Interactive Mock Interviewer ("Practice & Feedback Mode")
 - **Voice or Text Response**: Candidates can type their answer or dictate in real time using the browser's native **Web Speech API** (zero external paid audio APIs required).
 - **AI Rubric Scoring**: Submits the user's answer alongside the model answer to Gemini for an objective assessment.
 - **Instant Structured Critique**:
@@ -22,12 +22,12 @@ An end-to-end, AI-powered interview preparation and career coaching platform. **
   - **Improvement Areas**: Pinpoints missed architectural points or incorrect statements.
   - **Constructive Summary**: Concrete advice to refine the response.
 
-### 3. 📄 Automated ATS Resume Generator & PDF Export
+### 3.  Automated ATS Resume Generator & PDF Export
 - Generates a tailored, ATS-friendly resume directly aligned with the target job requirements.
 - Uses headless **Puppeteer** to compile clean, semantic HTML into a styled **A4 PDF document**.
 - Direct one-click download stream from the frontend dashboard with an isolated loading spinner.
 
-### 4. 🛡️ Robust Security & Production Hardening
+### 4.  Robust Security & Production Hardening
 - **Strict File Ingestion**: In-memory buffer parsing via **Multer** and `pdf-parse`, enforcing `.pdf` MIME validation and a strict **5MB** size cap to protect memory.
 - **Tiered Rate Limiting (`express-rate-limit`)**:
   - `authLimiter`: Max 20 requests per 15 minutes to prevent brute-force attacks.
@@ -37,7 +37,7 @@ An end-to-end, AI-powered interview preparation and career coaching platform. **
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+##  Architecture & Tech Stack
 
 ```mermaid
 flowchart TD
@@ -71,7 +71,7 @@ flowchart TD
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or higher recommended)
@@ -113,7 +113,7 @@ npm run dev
 
 ---
 
-## 📡 API Overview
+##  API Overview
 
 | Method | Endpoint | Description | Access |
 | :--- | :--- | :--- | :--- |
@@ -129,6 +129,6 @@ npm run dev
 
 ---
 
-## 📄 License
+##  License
 This project is licensed under the ISC License.
 

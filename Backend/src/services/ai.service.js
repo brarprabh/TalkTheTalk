@@ -110,7 +110,34 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
     const pdfBuffer = await generatePdfFromHtml(jsonContent.html)
 
     return pdfBuffer
-
 }
 
-module.exports = { generateInterviewReport, generateResumePdf }
+const answerFeedbackSchema = z.object({
+    score: z.number().min(0).max(10).describe("Score out of 10 for candidate's answer"),
+    strengths: z.array(z.string()).describe("Positive aspects and points correctly answered"),
+    improvements: z.array(z.string()).describe("Missing concepts, incorrect statements, or areas of improvement"),
+    feedbackSummary: z.string().describe("A concise summary giving constructive feedback to the candidate")
+})
+
+async function evaluateCandidateAnswer({ question, modelAnswer, candidateAnswer }) {
+    const prompt = `You are an expert technical interviewer evaluating a candidate's answer.
+
+Question: ${question}
+Expected Model Answer: ${modelAnswer}
+Candidate's Answer: ${candidateAnswer}
+
+Evaluate the candidate's answer fairly and constructively. Compare it with the expected model answer.`
+
+    const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: zodToJsonSchema(answerFeedbackSchema),
+        }
+    })
+
+    return JSON.parse(response.text)
+}
+
+module.exports = { generateInterviewReport, generateResumePdf, evaluateCandidateAnswer }

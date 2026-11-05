@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import '../style/interview.scss'
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate, useParams } from 'react-router'
+import { evaluateAnswer } from '../services/interview.api.js'
 
 
 
@@ -14,6 +15,70 @@ const NAV_ITEMS = [
 // ── Sub-components ────────────────────────────────────────────────────────────
 const QuestionCard = ({ item, index }) => {
     const [ open, setOpen ] = useState(false)
+    const [ isPracticing, setIsPracticing ] = useState(false)
+    const [ answerText, setAnswerText ] = useState("")
+    const [ isListening, setIsListening ] = useState(false)
+    const [ evaluating, setEvaluating ] = useState(false)
+    const [ feedback, setFeedback ] = useState(null)
+    const recognitionRef = useRef(null)
+
+    // Speech-to-Text handler using browser Web Speech API
+    const toggleSpeechRecognition = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+        if (!SpeechRecognition) {
+            alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.")
+            return
+        }
+
+        if (isListening) {
+            recognitionRef.current?.stop()
+            setIsListening(false)
+            return
+        }
+
+        const recognition = new SpeechRecognition()
+        recognitionRef.current = recognition
+        recognition.continuous = true
+        recognition.interimResults = false // Only take finalized transcripts to prevent repeated text
+        recognition.lang = 'en-US'
+
+        recognition.onstart = () => setIsListening(true)
+        recognition.onend = () => setIsListening(false)
+        recognition.onerror = () => setIsListening(false)
+
+        recognition.onresult = (event) => {
+            let finalTranscript = ""
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript + " "
+                }
+            }
+            if (finalTranscript) {
+                setAnswerText(prev => (prev ? prev.trim() + " " : "") + finalTranscript.trim())
+            }
+        }
+
+        recognition.start()
+    }
+
+    const handleEvaluate = async () => {
+        if (!answerText.trim()) return
+        setEvaluating(true)
+        try {
+            const res = await evaluateAnswer({
+                question: item.question,
+                modelAnswer: item.answer,
+                candidateAnswer: answerText
+            })
+            setFeedback(res.feedback)
+        } catch (err) {
+            console.error(err)
+            alert("Failed to evaluate answer. Please try again.")
+        } finally {
+            setEvaluating(false)
+        }
+    }
+
     return (
         <div className='q-card'>
             <div className='q-card__header' onClick={() => setOpen(o => !o)}>
@@ -33,6 +98,76 @@ const QuestionCard = ({ item, index }) => {
                         <span className='q-card__tag q-card__tag--answer'>Model Answer</span>
                         <p>{item.answer}</p>
                     </div>
+
+                    {/* Practice Toggle Button */}
+                    <div className='practice-toggle-area'>
+                        <button
+                            type="button"
+                            className='practice-btn'
+                            onClick={() => setIsPracticing(prev => !prev)}
+                        >
+                            {isPracticing ? "Close Practice" : "🎯 Practice This Question"}
+                        </button>
+                    </div>
+
+                    {/* Interactive Practice Panel */}
+                    {isPracticing && (
+                        <div className='practice-panel'>
+                            <h4>Your Practice Response</h4>
+                            <textarea
+                                rows={4}
+                                placeholder="Type your answer here, or click Speak to talk..."
+                                value={answerText}
+                                onChange={(e) => setAnswerText(e.target.value)}
+                            />
+
+                            <div className='practice-actions'>
+                                <button
+                                    type="button"
+                                    className={`mic-btn ${isListening ? 'mic-btn--active' : ''}`}
+                                    onClick={toggleSpeechRecognition}
+                                >
+                                    {isListening ? "🔴 Listening... (Click to stop)" : "🎙️ Speak Answer"}
+                                </button>
+                                <button
+                                    type="button"
+                                    className='submit-answer-btn'
+                                    disabled={evaluating || !answerText.trim()}
+                                    onClick={handleEvaluate}
+                                >
+                                    {evaluating ? "Evaluating with AI..." : "Evaluate Answer"}
+                                </button>
+                            </div>
+
+                            {/* Evaluation Feedback */}
+                            {feedback && (
+                                <div className='feedback-card'>
+                                    <div className='feedback-score'>
+                                        <span>AI Score:</span> <strong>{feedback.score} / 10</strong>
+                                    </div>
+                                    <p className='feedback-summary'>{feedback.feedbackSummary}</p>
+                                    
+                                    {feedback.strengths?.length > 0 && (
+                                        <div className='feedback-section strengths'>
+                                            <h5>✅ Strengths:</h5>
+                                            <ul>
+                                                {feedback.strengths.map((str, i) => <li key={i}>{str}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {feedback.improvements?.length > 0 && (
+                                        <div className='feedback-section improvements'>
+                                            <h5>⚠️ Improvements & Missing Points:</h5>
+                                            <ul>
+                                                {feedback.improvements.map((imp, i) => <li key={i}>{imp}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

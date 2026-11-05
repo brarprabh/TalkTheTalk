@@ -57,3 +57,15 @@ export const generateResumePdf = async ({ interviewReportId }) => {
 
     return response.data
 }
+
+/**
+ * @description Service to evaluate candidate's practice answer
+ */
+export const evaluateAnswer = async ({ question, modelAnswer, candidateAnswer }) => {
+    const response = await api.post("/api/interview/evaluate", {
+        question,
+        modelAnswer,
+        candidateAnswer
+    })
+    return response.data
+}
